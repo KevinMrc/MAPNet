@@ -5,6 +5,8 @@ import tensorflow as tf
 import numpy as np
 import skimage.io as io
 import argparse
+import cv2
+import matplotlib.pyplot as plt
 
 from load_data import load_batch,prepare_data
 from model.mapnet import mapnet
@@ -17,7 +19,7 @@ from model.mapnet import mapnet
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch_size', type=int, default=4, help='Number of images in each batch')
+parser.add_argument('--batch_size', type=int, default=2, help='Number of images in each batch')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Number of images in each batch')
 
 
@@ -29,7 +31,7 @@ parser.add_argument('--h_flip', type=bool, default=True, help='Whether to random
 parser.add_argument('--v_flip', type=bool, default=True, help='Whether to randomly flip the image vertically for data augmentation')
 parser.add_argument('--color', type=bool, default=True, help='Whether to randomly flip the image vertically for data augmentation')
 parser.add_argument('--rotation', type=bool, default=True, help='randomly rotate, the imagemax rotation angle in degrees.')
-parser.add_argument('--start_valid', type=int, default=20, help='Number of epoch to valid')
+parser.add_argument('--start_valid', type=int, default=1, help='Number of epoch to valid')
 parser.add_argument('--valid_step', type=int, default=1, help="Number of step to validation")
 
 
@@ -47,7 +49,6 @@ pred1=tf.nn.sigmoid(pred)
 
 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 with tf.control_dependencies(update_ops):
-
     sig=tf.nn.sigmoid_cross_entropy_with_logits(labels=label, logits=pred)
     sigmoid_cross_entropy_loss = tf.reduce_mean(sig)
     train_step = tf.train.AdamOptimizer(args.learning_rate).minimize(sigmoid_cross_entropy_loss)
@@ -96,7 +97,7 @@ def train():
     print("Total epoch:{}".format(args.num_epochs))
     print("Batch size:{}".format(args.batch_size))
     print("Learning rate:{}".format(args.learning_rate))
-    print("Checkpoint step:{}".format(args.checkpoint_step))
+    #print("Checkpoint step:{}".format(args.checkpoint_step))
 
     print("Data Argument:")
     print("h_flip: {}".format(args.h_flip))
@@ -106,6 +107,7 @@ def train():
     loss_tmp = []
     for i in range(start_epoch, args.num_epochs):
         epoch_time=time.time()
+        
         id_list = np.random.permutation(len(train_img))
 
         for j in range(start_batch_id, num_batches):
@@ -139,15 +141,14 @@ def train():
 
         # saver.save(sess, './checkpoint/model.ckpt', global_step=counter)
 
-        if (i>args.start_valid):
-            if (i-args.start_valid)%args.valid_step==0:
-                val_iou = validation()
-                print("last iou valu:{}".format(IOU))
-                print("new_iou value:{}".format(val_iou))
-                if val_iou > IOU:
-                    print("Save the checkpoint...")
-                    saver.save(sess, './checkpoint/model.ckpt', global_step=counter, write_meta_graph=True)
-                    IOU = val_iou
+        
+        val_iou = validation()
+        print("last iou valu:{}".format(IOU))
+        print("new_iou value:{}".format(val_iou))
+        if val_iou > IOU:
+            print("Save the checkpoint...")
+            saver.save(sess, './checkpoint/model.ckpt', global_step=counter, write_meta_graph=True)
+            IOU = val_iou
     saver.save(sess, './checkpoint/model.ckpt', global_step=counter)
 
 def f_iou(predict, label):
@@ -159,30 +160,53 @@ def f_iou(predict, label):
 
 
 def validation():
-
+    sum_a = 0
+    sum_b = 0
     print("validate...")
     inter=0
     unin=0
     for j in range(0,len(valid_img)):
-
+        if (j % 100 == 0):
+          print(f'validation {j}')
         x_batch = valid_img[j]
         x_batch = io.imread(x_batch) / 255.0
-        x_batch = np.expand_dims(x_batch, axis=0)
+        x_batch_r = cv2.resize(x_batch, (512, 512), interpolation = cv2.INTER_AREA)
+        if (j % 100 == 0):
+          plt.figure()
+          plt.imshow(x_batch_r)
+          plt.savefig('x.png')
+        
+        x_batch = np.expand_dims(x_batch_r, axis=0)
         feed_dict = {img: x_batch,
                      is_training:False
 
                      }
 
         predict = sess.run(pred1, feed_dict=feed_dict)
-
+        sum_a += predict.sum()
         predict[predict < 0.5] = 0
         predict[predict >= 0.5] = 1
+        sum_b += predict.sum()
         result = np.squeeze(predict)
-        gt_value=io.imread(valid_lab[j])
-        intr,unn=f_iou(gt_value,result)
+        if (j % 100 == 0):
+          plt.figure()
+          plt.imshow(result)
+          plt.savefig('result.png')
+
+        gt_value = io.imread(valid_lab[j])
+        gt_value_r = cv2.resize(gt_value, (512, 512), interpolation = cv2.INTER_AREA)
+        gt_value_r[gt_value_r < 0.5] = 0
+        gt_value_r[gt_value_r >= 0.5] = 1
+        if (j % 100 == 0):
+            plt.figure()
+            plt.imshow(gt_value_r)
+            plt.savefig('gt_value_r_maks.png')
+
+        intr,unn=f_iou(gt_value_r,result)
 
         inter=inter+intr
         unin=unin+unn
+    print(sum_a, sum_b)
     return inter*1.0/unin
 
 

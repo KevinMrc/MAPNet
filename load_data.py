@@ -1,19 +1,21 @@
 
 import numpy as np
 import glob
-import scipy
+import imageio
 import random
 import cv2
-
+from sklearn.model_selection import train_test_split
 
 def load_batch(x, y):
     x1 = []
     y1 = []
     for i in range(len(x)):
-        img = scipy.misc.imread(x[i])
-        lab = scipy.misc.imread(y[i])
+        img = imageio.imread(x[i])
+        lab = imageio.imread(y[i])
         img, lab = data_augmentation(img, lab)
         lab = lab.reshape(512, 512, 1)
+        lab[lab > 0.5] = 1
+        lab[lab <= 0.5] = 0
         x1.append(img / 255.0)
         y1.append(lab)
     y1 = np.array(y1).astype(np.float32)
@@ -31,11 +33,12 @@ def prepare_data():
     #     glob.glob(r'/media/lc/vge_lc/DL_DATE_BUILDING/WHU/cropped image tiles and raster labels/test/image/*.png')))
     # test_label = np.array(sorted(
     #     glob.glob(r'/media/lc/vge_lc/DL_DATE_BUILDING/WHU/cropped image tiles and raster labels/test/gt/*.png')))
+    
+    
+    im = np.array(sorted(glob.glob(r'./AOI_3_Paris_Train/RGB-normalized/*.png')))
+    mask = np.array(sorted(glob.glob(r'./AOI_3_Paris_Train/segmentation/*.png')))
+    img, test_img, label, test_label = train_test_split(im, mask, test_size=0.33, random_state=42)
 
-    img = np.array(sorted(glob.glob(r'./dataset/train/img/*.png')))
-    label = np.array(sorted(glob.glob(r'./dataset/train/lab/*.png')))
-    test_img = np.array(sorted(glob.glob(r'./dataset/test/img/*.png')))
-    test_label = np.array(sorted(glob.glob(r'./dataset/test/lab/*.png')))
 
 
     # img = np.array(sorted(glob.glob(r'/media/lc/vge_lc/spacenet/train_rgb_image/*.png')))
@@ -52,6 +55,7 @@ def prepare_data():
 
 def data_augmentation(image, label):
     # Data augmentation
+
     if random.randint(0, 1):
         image = np.fliplr(image)
         label = np.fliplr(label)
@@ -65,6 +69,8 @@ def data_augmentation(image, label):
             M = cv2.getRotationMatrix2D((image.shape[1] // 2, image.shape[0] // 2), angle, 1.0)
             image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]), flags=cv2.INTER_NEAREST)
             label = cv2.warpAffine(label, M, (label.shape[1], label.shape[0]), flags=cv2.INTER_NEAREST)
+    image_r = cv2.resize(image, (512, 512), interpolation = cv2.INTER_AREA) 
+    label_r = cv2.resize(label, (512, 512), interpolation = cv2.INTER_AREA) 
 
-    return image, label
+    return image_r, label_r
 
