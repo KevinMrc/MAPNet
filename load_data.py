@@ -29,10 +29,10 @@ def load_batch(images, labels, shape=64, channels=1, h_flip=True, vflip=True, ro
 
 def prepare_data(train_img_path, train_mask_path, test_image_path, test_mask_path):
 
-    img = np.array(sorted(glob.glob(r'{}'.format(train_img_path) + r'*.png')))[:3]
-    test_img = np.array(sorted(glob.glob(r'{}'.format(test_image_path) + r'*.png')))[:3]
-    label = np.array(sorted(glob.glob(r'{}'.format(train_mask_path) + r'*.png')))[:3]
-    test_label = np.array(sorted(glob.glob(r'{}'.format(test_mask_path) + r'*.png')))[:3]
+    img = np.array(sorted(glob.glob(r'{}'.format(train_img_path) + r'*.png')))
+    test_img = np.array(sorted(glob.glob(r'{}'.format(test_image_path) + r'*.png')))
+    label = np.array(sorted(glob.glob(r'{}'.format(train_mask_path) + r'*.png')))
+    test_label = np.array(sorted(glob.glob(r'{}'.format(test_mask_path) + r'*.png')))
 
     return img, label, test_img, test_label
 
