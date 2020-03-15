@@ -11,6 +11,20 @@ import tensorflow as tf
 from model.mapnet import mapnet
 from load_data import load_batch, prepare_data
 
+# Helper functions
+
+def f_iou(predict, label):
+    tp = np.sum(np.logical_and(predict == 1, label == 1))
+    fp = np.sum(predict == 1)
+    fn = np.sum(label == 1)
+    return tp, fp+fn-tp
+  
+def make_mask(im):
+    im[im < 0.5] = 0
+    im[im >= 0.5] = 1
+    return im
+  
+
 # Args
 parser = argparse.ArgumentParser()
 
@@ -172,8 +186,7 @@ def train():
             # Save mask
             if args.save_mask_train and (j % 100 == 0):
                 predict = pred1[1]
-                predict[predict < 0.5] = 0
-                predict[predict >= 0.5] = 1
+                predict = make_mask(predict)
                 result = np.squeeze(predict)
                 Image.fromarray(result*255.).convert("L").save('result_thresh_train.png')
                 
@@ -207,11 +220,7 @@ def train():
     saver.save(sess, './checkpoint/model.ckpt', global_step=counter)
 
 
-def f_iou(predict, label):
-    tp = np.sum(np.logical_and(predict == 1, label == 1))
-    fp = np.sum(predict == 1)
-    fn = np.sum(label == 1)
-    return tp, fp+fn-tp
+
 
 
 def validation():
@@ -244,14 +253,12 @@ def validation():
         predict = sess.run(pred1, feed_dict=feed_dict)
 
         # Mask
-        predict[predict < 0.5] = 0
-        predict[predict >= 0.5] = 1
+        predict = make_mask(predict)
         result = np.squeeze(predict)
         
         # Get groud truth
         gt_value = imageio.imread(valid_lab[j])
-        gt_value[gt_value < 0.5] = 0
-        gt_value[gt_value >= 0.5] = 1
+        gt_value = make_mask(gt_value)
 
         # Save mask and ground truth
         if (j % 10000 == 0):
