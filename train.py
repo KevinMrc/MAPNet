@@ -70,7 +70,7 @@ parser.add_argument('--test_image_path', type=str, default='./image_64_sep/image
 parser.add_argument('--test_mask_path', type=str, default='./mask_64_sep/mask/test/',
                     help="Mask test folder")
 
-parser.add_argument('--save_mask_train', type=bool, default=False,
+parser.add_argument('--save_mask_train', action='store_false',
                     help="Save a mask during training")
 parser.add_argument('--no_load', action='store_true',
                     help="Don't load checkpoints")
