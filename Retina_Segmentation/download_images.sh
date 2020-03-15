@@ -27,5 +27,5 @@ rm -R DRIVE
 rm -R DRIVE_datasets_training_testing
 
 # Zip folders
-zip -r image_64_sep.zip image 
-zip -r mask_64_sep.zip mask
+#zip -r image_64_sep.zip image 
+#zip -r mask_64_sep.zip mask
