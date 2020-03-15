@@ -58,6 +58,8 @@ parser.add_argument('--test_mask_path', type=str, default='./mask_64_sep/mask/te
 
 parser.add_argument('--save_mask_train', type=bool, default=False,
                     help="Save a mask during training")
+parser.add_argument('--load', type=bool, default=True,
+                    help="Load checkpoints")
 args = parser.parse_args()
 
 
@@ -116,7 +118,7 @@ def train():
 
     # Load checkpoints
     could_load, checkpoint_counter = load()
-    if could_load:
+    if args.load and could_load:
         start_epoch = (int)(checkpoint_counter / num_batches)
         start_batch_id = checkpoint_counter - start_epoch * num_batches
         counter = checkpoint_counter
