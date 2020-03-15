@@ -230,7 +230,7 @@ def validation():
     for j in range(0, len(valid_img)):
         # Load image    
         x_batch = valid_img[j]
-        x_batch = np.repeat(imageio.imread(x_batch)[:, :, np.newaxis], 3, axis=2) / 255.0
+        x_batch = imageio.imread(x_batch) / 255.0
         # Save image
         if (j % 10000 == 0):
             print(f'validation {j}')
