@@ -2,10 +2,10 @@ import os
 import re
 import cv2
 import time
+import imageio
 import argparse
 import numpy as np
 from PIL import Image
-import imageio
 import tensorflow as tf
 
 from model.mapnet import mapnet
@@ -116,6 +116,7 @@ def train():
     train_loss = []
     loss_tmp = []
     IOU = 0.65
+    
     # Load checkpoints
     if not args.no_load:
         could_load, checkpoint_counter = load()
@@ -131,16 +132,16 @@ def train():
         print("Training from scratch...")
 
     # Print info
-    print("Total train image:{}".format(len(train_img)))
-    print("Total validate image:{}".format(len(valid_img)))
-    print("Total epoch:{}".format(args.num_epochs))
-    print("Batch size:{}".format(args.batch_size))
-    print("Learning rate:{}".format(args.learning_rate))
-    #print("Checkpoint step:{}".format(args.checkpoint_step))
+    print(f"Total train image: {len(train_img)}")
+    print(f"Total validate image: {len(valid_img)}")
+    print(f"Total epoch: {args.num_epochs}")
+    print(f"Batch size: {args.batch_size}")
+    print(f"Learning rate: {args.learning_rate}")
+    print(f"Image shape: {args.crop_width} x {args.crop_height} x {args.channels}")
     print("Data Argument:")
-    print("h_flip: {}".format(args.h_flip))
-    print("v_flip: {}".format(args.v_flip))
-    print("rotate: {}".format(args.rotation))
+    print(f"h_flip: {args.h_flip}")
+    print(f"v_flip: {args.v_flip}")
+    print(f"rotate: {args.rotation}")
 
     # Epoch
     for i in range(start_epoch, args.num_epochs):
