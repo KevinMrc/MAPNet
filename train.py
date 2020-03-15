@@ -11,18 +11,13 @@ import tensorflow as tf
 from model.mapnet import mapnet
 from load_data import load_batch, prepare_data
 
-############################# Helper functions #################################
+# Helper functions
 
-def scores(predict, label):
+def f_iou(predict, label):
     tp = np.sum(np.logical_and(predict == 1, label == 1))
-    tn = np.sum(np.logical_and(predict == 0, label == 0))
-    fp = np.sum(np.logical_and(predict == 1, label == 0))
-    fn = np.sum(np.logical_and(predict == 0, label == 1))
-    
-    intersection = tp
-    union = fp + fn + tp
-
-    return intersection, union, tp, tn, fp, fn 
+    fp = np.sum(predict == 1)
+    fn = np.sum(label == 1)
+    return tp, fp+fn-tp
   
 def make_mask(im):
     im[im < 0.5] = 0
@@ -30,8 +25,7 @@ def make_mask(im):
     return im
   
 
-#################################### Args ######################################
-
+# Args
 parser = argparse.ArgumentParser()
 
 # Hyperparameters
@@ -76,7 +70,7 @@ parser.add_argument('--test_image_path', type=str, default='./image_64_sep/image
 parser.add_argument('--test_mask_path', type=str, default='./mask_64_sep/mask/test/',
                     help="Mask test folder")
 
-parser.add_argument('--save_mask_train', action='store_true',
+parser.add_argument('--save_mask_train', action='store_false',
                     help="Save a mask during training")
 parser.add_argument('--no_load', action='store_true',
                     help="Don't load checkpoints")
@@ -167,7 +161,7 @@ def train():
     for i in range(start_epoch, args.num_epochs):
         epoch_time = time.time()
         id_list = np.random.permutation(len(train_img))
-        
+
         # Batch
         for j in range(start_batch_id, num_batches):
             img_d, lab_d = [], []
@@ -213,10 +207,9 @@ def train():
         # Validation
         if i >= args.start_valid:
             if (i - args.start_valid) % args.valid_step == 0:
-              val_iou, precision, recall, f1, accuracy, specificity = validation()
-              print(f"Last IOU value: {IOU:0.3f}")
-              print(f"New IOU value: {val_iou:0.3f}")
-              print(f'New Precision: {precision:0.3f}, Recall: {recall:0.3f}, F1: {f1:0.3f}, Accuracy: {accuracy:0.3f}, Specificity: {specificity:0.3f}')
+              val_iou = validation()
+              print("Last IOU value:{}".format(IOU))
+              print("New IOU value:{}".format(val_iou))
 
               if val_iou > IOU:
                   print("Save the checkpoint...")
@@ -226,28 +219,31 @@ def train():
 
     saver.save(sess, './checkpoint/model.ckpt', global_step=counter)
 
+
+
+
+
 def validation():
     print("Start validation...")
-    inter, unin, tp, tn, fp, fn = 0, 0, 0, 0, 0, 0
+    inter, unin = 0, 0
 
     for j in range(0, len(valid_img)):
         # Load image    
         x_batch = valid_img[j]
-        x_batch = imageio.imread(x_batch) / 255.0
-
+        x_batch = np.repeat(imageio.imread(x_batch)[:, :, np.newaxis], 3, axis=2) / 255.0
         # Save image
         if (j % 10000 == 0):
             print(f'validation {j}')
             if args.channels == 1:
               Image.fromarray(x_batch*255.).convert("L").save('input_image_valid.png')
             elif args.channels == 3:
-              Image.fromarray(x_batch*255.).convert("RGB").save('input_image_valid.png')
+              Image.fromarray((x_batch*255).astype('uint8')).save('input_image_valid.png')
 
         # Reshape
         if args.channels == 1:
             x_batch = x_batch[np.newaxis, :, :, np.newaxis]
         elif args.channels == 3:
-            x_batch = x_batch[:, :, np.newaxis]
+            x_batch = x_batch[np.newaxis, :, :, :]
 
         # Inference
         feed_dict = {img: x_batch,
@@ -268,23 +264,12 @@ def validation():
             Image.fromarray(result*255.).convert("L").save('ouput_mask_valid.png')
             Image.fromarray(gt_value*255).convert("L").save('ground_truth_mask_valid.png')
 
-        # Scores
-        intersection, union, tp_, tn_, fp_, fn_  = scores(gt_value, result)
-        tp = tp + tp_
-        tn = tn + tn_
-        fn = fn + fn_
-        fp = fp + fp_
-        inter = inter + intersection
-        unin = unin + union
+        # IOU
+        intr, unn = f_iou(gt_value, result)
+        inter = inter + intr
+        unin = unin + unn
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    f1 = (2 * precision * recall) / (precision + recall)
-    accuracy = (tp + tn) / (tp + tn + fp + fn)
-    specificity = tn / (tn + fp)
-
-
-    return inter*1.0 / unin, precision, recall, f1, accuracy, specificity
+    return inter*1.0 / unin
 
 
 with tf.Session() as sess:
