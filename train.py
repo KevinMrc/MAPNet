@@ -67,13 +67,13 @@ parser.add_argument('--valid_step', type=int, default=1,
                     help="Number of step to validation")
 
 # Folder paths
-parser.add_argument('--train_img_path', type=str, default='./image_64_sep/image/train/',
+parser.add_argument('--train_img_path', type=str, default='./Retina_Segmentation/image/train/',
                     help="Image train folder")
-parser.add_argument('--train_mask_path', type=str, default='./mask_64_sep/mask/train/',
+parser.add_argument('--train_mask_path', type=str, default='./Retina_Segmentation/mask/train/',
                     help="Mask train folder")
-parser.add_argument('--test_image_path', type=str, default='./image_64_sep/image/test/',
+parser.add_argument('--test_image_path', type=str, default='./Retina_Segmentation/image/test/',
                     help="Image test folder")
-parser.add_argument('--test_mask_path', type=str, default='./mask_64_sep/mask/test/',
+parser.add_argument('--test_mask_path', type=str, default='./Retina_Segmentation/mask/test/',
                     help="Mask test folder")
 
 parser.add_argument('--save_mask_train', action='store_true',
