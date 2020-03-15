@@ -15,7 +15,7 @@ mkdir image/test
 mkdir mask/test
 
 # Creates patches
-python save_patch.py --patch_size 64 --n_patches 200000
+python save_patch.py --patch_size 128 --n_patches 50000
 
 # Delete temp files
 rm extract_patches.py
