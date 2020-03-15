@@ -58,8 +58,9 @@ parser.add_argument('--test_mask_path', type=str, default='./mask_64_sep/mask/te
 
 parser.add_argument('--save_mask_train', type=bool, default=False,
                     help="Save a mask during training")
-parser.add_argument('--load', type=bool, default=True,
-                    help="Load checkpoints")
+parser.add_argument('--no_load', action='store_true',
+                    help="Don't load checkpoints")
+
 args = parser.parse_args()
 
 
@@ -101,7 +102,7 @@ def load():
         ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
         saver.restore(sess, os.path.join(checkpoint_dir, ckpt_name))
         counter = int(next(re.finditer("(\d+)(?!.*\d)", ckpt_name)).group(0))
-        print("Checkpoint {} read Successed".format(ckpt_name))
+        print("Checkpoint {} read successfull".format(ckpt_name))
         return True, counter
     else:
         print("Checkpoint not found")
@@ -115,19 +116,19 @@ def train():
     train_loss = []
     loss_tmp = []
     IOU = 0.65
-
     # Load checkpoints
-    could_load, checkpoint_counter = load()
-    if args.load and could_load:
-        start_epoch = (int)(checkpoint_counter / num_batches)
-        start_batch_id = checkpoint_counter - start_epoch * num_batches
-        counter = checkpoint_counter
-        print("Checkpoint Load Successed")
+    if not args.no_load:
+        could_load, checkpoint_counter = load()
+        if could_load:
+            start_epoch = (int)(checkpoint_counter / num_batches)
+            start_batch_id = checkpoint_counter - start_epoch * num_batches
+            counter = checkpoint_counter
+            print("Checkpoint Load Successed")
     else:
         start_epoch = 0
         start_batch_id = 0
         counter = 1
-        print("train from scratch...")
+        print("Training from scratch...")
 
     # Print info
     print("Total train image:{}".format(len(train_img)))
