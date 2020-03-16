@@ -258,11 +258,17 @@ def validation():
                      is_training: False
                      }
         predict = sess.run(pred1, feed_dict=feed_dict)
-
+        
+         # Mask
+        result = np.squeeze(make_mask(predict))
+        
+        # Get groud truth
+        gt_value = make_mask(imageio.imread(valid_lab[j]))
+        
         # Save mask and ground truth
         if (j % (len(valid_img)//4) == 0):
-            Image.fromarray(np.squeeze(make_mask(predict))*255.).convert("L").save('ouput_mask_valid.png')
-            Image.fromarray(make_mask(imageio.imread(valid_lab[j]))*255).convert("L").save('ground_truth_mask_valid.png')
+            Image.fromarray(result*255.).convert("L").save('ouput_mask_valid.png')
+            Image.fromarray(gt_value*255).convert("L").save('ground_truth_mask_valid.png')
 
         # Scores
         intersection, union, tp_, tn_, fp_, fn_  = scores(gt_value, result)
