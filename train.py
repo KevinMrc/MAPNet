@@ -76,6 +76,11 @@ parser.add_argument('--test_image_path', type=str, default='./Retina_Segmentatio
 parser.add_argument('--test_mask_path', type=str, default='./Retina_Segmentation/mask/test/',
                     help="Mask test folder")
 
+parser.add_argument('--checkpoint_load_path', type=str, default='./checkpoint/',
+                    help="Folder to load checkpoints from")
+parser.add_argument('--checkpoint_save_path', type=str, default='./checkpoint/',
+                    help="Folder where to save checkpoints")
+
 parser.add_argument('--save_mask_train', action='store_true',
                     help="Save a mask during training")
 parser.add_argument('--no_load', action='store_true',
@@ -115,7 +120,7 @@ def load():
     Load checkpoints
     """
     print("Reading checkpoints...")
-    checkpoint_dir = './checkpoint/'
+    checkpoint_dir = args.checkpoint_load_path
     ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
 
     if ckpt and ckpt.model_checkpoint_path:
@@ -225,11 +230,11 @@ def train():
 
               if val_iou > IOU:
                   print("Save the checkpoint...")
-                  saver.save(sess, './checkpoint/model.ckpt',
+                  saver.save(sess, args.checkpoint_save_path + 'model.ckpt',
                             global_step=counter, write_meta_graph=True)
                   IOU = val_iou
 
-    saver.save(sess, './checkpoint/model.ckpt', global_step=counter)
+    saver.save(sess, args.checkpoint_save_path + 'model.ckpt', global_step=counter)
 
 def validation():
     print("Start validation...")
