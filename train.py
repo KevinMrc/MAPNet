@@ -137,9 +137,7 @@ def load():
 def train():
     # Initialize
     tf.global_variables_initializer().run()
-    train_iter = []
-    train_loss = []
-    loss_tmp = []
+    train_iter, train_loss, loss_tmp = [], [], []
     IOU = 0.65
     
     # Load checkpoints
@@ -201,10 +199,7 @@ def train():
 
             # Save mask
             if args.save_mask_train and (j % 100 == 0):
-                predict = pred1[1]
-                predict = make_mask(predict)
-                result = np.squeeze(predict)
-                Image.fromarray(result*255.).convert("L").save('result_thresh_train.png')
+                Image.fromarray(np.squeeze(make_mask(pred1[1]))*255.).convert("L").save('result_thresh_train.png')
                 
             # Print loss
             loss_tmp.append(loss)
@@ -242,8 +237,7 @@ def validation():
 
     for j in range(0, len(valid_img)):
         # Load image    
-        x_batch = valid_img[j]
-        x_batch = imageio.imread(x_batch) / 255.0
+        x_batch = imageio.imread(valid_img[j]) / 255.0
 
         # Save image
         if (j % (len(valid_img)//4) == 0):
@@ -265,34 +259,21 @@ def validation():
                      }
         predict = sess.run(pred1, feed_dict=feed_dict)
 
-        # Mask
-        predict = make_mask(predict)
-        result = np.squeeze(predict)
-        
-        # Get groud truth
-        gt_value = imageio.imread(valid_lab[j])
-        gt_value = make_mask(gt_value)
-
         # Save mask and ground truth
         if (j % (len(valid_img)//4) == 0):
-            Image.fromarray(result*255.).convert("L").save('ouput_mask_valid.png')
-            Image.fromarray(gt_value*255).convert("L").save('ground_truth_mask_valid.png')
+            Image.fromarray(np.squeeze(make_mask(predict))*255.).convert("L").save('ouput_mask_valid.png')
+            Image.fromarray(make_mask(imageio.imread(valid_lab[j]))*255).convert("L").save('ground_truth_mask_valid.png')
 
         # Scores
         intersection, union, tp_, tn_, fp_, fn_  = scores(gt_value, result)
-        tp = tp + tp_
-        tn = tn + tn_
-        fn = fn + fn_
-        fp = fp + fp_
-        inter = inter + intersection
-        unin = unin + union
+        tp, tn, fn, fp = tp + tp_, tn + tn_, fn + fn_, fp + fp_
+        inter, unin = inter + intersection, unin + union
 
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     f1 = (2 * precision * recall) / (precision + recall)
     accuracy = (tp + tn) / (tp + tn + fp + fn)
     specificity = tn / (tn + fp)
-
 
     return inter*1.0 / unin, precision, recall, f1, accuracy, specificity
 
