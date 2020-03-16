@@ -246,7 +246,7 @@ def validation():
         x_batch = imageio.imread(x_batch) / 255.0
 
         # Save image
-        if (j % 10000 == 0):
+        if (j % (len(valid_img)//4) == 0):
             print(f'validation {j}')
             if args.channels == 1:
               Image.fromarray(x_batch*255.).convert("L").save('input_image_valid.png')
@@ -274,7 +274,7 @@ def validation():
         gt_value = make_mask(gt_value)
 
         # Save mask and ground truth
-        if (j % 10000 == 0):
+        if (j % (len(valid_img)//4) == 0):
             Image.fromarray(result*255.).convert("L").save('ouput_mask_valid.png')
             Image.fromarray(gt_value*255).convert("L").save('ground_truth_mask_valid.png')
 
