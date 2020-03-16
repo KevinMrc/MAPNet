@@ -145,6 +145,11 @@ def train():
             start_batch_id = checkpoint_counter - start_epoch * num_batches
             counter = checkpoint_counter
             print("Checkpoint Load Successed")
+        else:
+            start_epoch = 0
+            start_batch_id = 0
+            counter = 1
+            print("Training from scratch...")
     else:
         start_epoch = 0
         start_batch_id = 0
