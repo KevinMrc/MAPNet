@@ -168,7 +168,7 @@ def extract_random(full_imgs,full_masks, patch_h,patch_w, N_patches, inside=True
                     continue
             patch = full_imgs[i,:,y_center-int(patch_h/2):y_center+int(patch_h/2),x_center-int(patch_w/2):x_center+int(patch_w/2)]
             patch_mask = full_masks[i,:,y_center-int(patch_h/2):y_center+int(patch_h/2),x_center-int(patch_w/2):x_center+int(patch_w/2)]
-            if i <= 15:
+            if i <= 17:
                 Image.fromarray(patch[0]).convert("L").save(f'./image/train/img_{i}_patch_{k}.png')
                 Image.fromarray(patch_mask[0]).convert("L").save(f'./mask/train/mask_{i}_patch_{k}.png')
             else:
