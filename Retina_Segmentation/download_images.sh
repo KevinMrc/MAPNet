@@ -24,7 +24,7 @@ rm pre_processing.py
 rm prepare_datasets_DRIVE.py
 rm save_patch.py
 rm -R DRIVE
-rm -R DRIVE_datasets_training_testing
+#rm -R DRIVE_datasets_training_testing
 
 # Zip folders
 #zip -r image_64_sep.zip image 
