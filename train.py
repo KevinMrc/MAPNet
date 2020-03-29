@@ -225,11 +225,11 @@ def train():
 
               if val_iou > IOU:
                   print("Save the checkpoint...")
-                  saver.save(sess, args.checkpoint_save_path + 'model.ckpt',
+                  saver.save(sess, args.checkpoint_save_path + 'model_best.ckpt',
                             global_step=counter, write_meta_graph=True)
                   IOU = val_iou
 
-    saver.save(sess, args.checkpoint_save_path + 'model.ckpt', global_step=counter)
+    saver.save(sess, args.checkpoint_save_path + 'model_current.ckpt', global_step=counter)
 
 def validation():
     print("Start validation...")
