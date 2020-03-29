@@ -9,7 +9,7 @@
 * scipy 
 
 
-## Heavily modified to be more generic and to work with any image size and any number of channels from:
+## Modified to be more generic and to work with any image size and any number of channels from:
 
 ```
 Bibtex
